@@ -8,6 +8,10 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
+const (
+	rowContainerElemSelector = "div.ytmc-entry-row-container"
+)
+
 type ChartCollector struct {
 	chromedpOptions []chromedp.ExecAllocatorOption
 }
@@ -39,7 +43,7 @@ func (c *ChartCollector) CollectTrendingVideos() ([]chart.TrendingVideo, error) 
 
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(chartURL),
-		chromedp.WaitVisible("div.ytmc-entry-row-container", chromedp.ByQuery),
+		chromedp.WaitVisible(rowContainerElemSelector, chromedp.ByQuery),
 		chromedp.Evaluate(chart.GetTrendingExtractScript(), &videos),
 	)
 
