@@ -25,7 +25,7 @@ type TimeRange string
 
 const (
 	RightNow TimeRange = "RightNow"
-	Daily    TimeRange = "Daily"
+	Daily    TimeRange = "daily"
 	Weekly   TimeRange = "Weekly"
 )
 

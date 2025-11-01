@@ -57,3 +57,32 @@ func (c *ChartCollector) CollectTrendingVideos() ([]chart.TrendingVideo, error) 
 
 	return videos, nil
 }
+
+func (c *ChartCollector) CollectTopVideos() ([]chart.TopVideo, error) {
+	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), c.chromedpOptions...)
+	defer allocCancel()
+
+	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(func(string, ...interface{}) {}))
+	defer cancel()
+
+	config := &chart.ChartConfig{Type: chart.TopVideos, Region: chart.RegionKR, TimeRange: chart.Daily}
+	chartURL := config.GenChartURL()
+
+	var videos []chart.TopVideo
+
+	err := chromedp.Run(ctx,
+		chromedp.Navigate(chartURL),
+		chromedp.WaitVisible(rowContainerElemSelector, chromedp.ByQuery),
+		chromedp.Evaluate(chart.GetTopVideosExtractScript(), &videos),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract chart data: %w", err)
+	}
+
+	if len(videos) == 0 {
+		return nil, fmt.Errorf("no data extracted - \n")
+	}
+
+	return videos, nil
+}
