@@ -9,6 +9,7 @@ const (
 	TopVideos      ChartType = "TopVideos"
 	TopArtists     ChartType = "TopArtists"
 	TopSongs       ChartType = "TopSongs"
+	TopShortsSongs ChartType = "TopShortsSongs"
 )
 
 // Region represents the country/region code for charts

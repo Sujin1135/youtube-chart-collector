@@ -17,15 +17,15 @@ func main() {
 func runChartCollection() {
 	videoCollector := collector.NewChartCollector()
 
-	// Collect Weekly Top Artists (주간 인기 아티스트)
-	fmt.Println("=== Weekly Top Artists ===")
-	weeklyTopArtists, err := videoCollector.CollectWeeklyTopArtists()
+	// Collect Daily Top Shorts Songs (일간 SHORTS 인기곡)
+	fmt.Println("=== Daily Top Shorts Songs ===")
+	dailyTopShortsSongs, err := videoCollector.CollectDailyTopShortsSongs()
 	if err != nil {
-		log.Printf("Error collecting weekly top artists: %v", err)
+		log.Printf("Error collecting daily top shorts songs: %v", err)
 	} else {
-		for _, artist := range weeklyTopArtists {
-			fmt.Printf("Rank: %d | Artist: %s | Views: %d | Peak: %d | Weeks: %d\n",
-				artist.Rank, artist.ArtistName, artist.ViewCount, artist.PeakPosition, artist.WeeksOnChart)
+		for _, song := range dailyTopShortsSongs {
+			fmt.Printf("Rank: %d | Title: %s | Artist: %s | Views: %d | URL: %s | Peak: %d | Weeks: %d\n",
+				song.Rank, song.Title, song.Artist, song.ViewCount, song.VideoURL, song.PeakPosition, song.WeeksOnChart)
 		}
 	}
 }

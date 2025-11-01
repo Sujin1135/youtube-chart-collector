@@ -144,3 +144,32 @@ func (c *ChartCollector) CollectWeeklyTopArtists() ([]chart.WeeklyTopArtist, err
 
 	return artists, nil
 }
+
+func (c *ChartCollector) CollectDailyTopShortsSongs() ([]chart.DailyTopShortsSong, error) {
+	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), c.chromedpOptions...)
+	defer allocCancel()
+
+	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(func(string, ...interface{}) {}))
+	defer cancel()
+
+	config := &chart.ChartConfig{Type: chart.TopShortsSongs, Region: chart.RegionKR, TimeRange: chart.Daily}
+	chartURL := config.GenChartURL()
+
+	var songs []chart.DailyTopShortsSong
+
+	err := chromedp.Run(ctx,
+		chromedp.Navigate(chartURL),
+		chromedp.WaitVisible(rowContainerElemSelector, chromedp.ByQuery),
+		chromedp.Evaluate(chart.GetDailyTopShortsSongExtractScript(), &songs),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract chart data: %w", err)
+	}
+
+	if len(songs) == 0 {
+		return nil, fmt.Errorf("no data extracted - \n")
+	}
+
+	return songs, nil
+}
