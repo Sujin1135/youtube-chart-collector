@@ -17,24 +17,15 @@ func main() {
 func runChartCollection() {
 	videoCollector := collector.NewChartCollector()
 
-	topVideos, err := videoCollector.CollectTopVideos()
+	// Collect Weekly Top Songs (주간 인기곡)
+	fmt.Println("=== Weekly Top Songs ===")
+	weeklyTopSongs, err := videoCollector.CollectWeeklyTopSongs()
 	if err != nil {
-		log.Printf("Error collecting top videos: %v", err)
+		log.Printf("Error collecting weekly top songs: %v", err)
 	} else {
-		for _, video := range topVideos {
-			fmt.Printf("Rank: %d | Title: %s | Artist: %s | URL: %s | Peak: %d | Weeks: %d\n",
-				video.Rank, video.Title, video.Artist, video.VideoURL, video.PeakPosition, video.WeeksOnChart)
+		for _, song := range weeklyTopSongs {
+			fmt.Printf("Rank: %d | Title: %s | Artist: %s | Views: %d | URL: %s | Peak: %d | Weeks: %d\n",
+				song.Rank, song.Title, song.Artist, song.ViewCount, song.VideoURL, song.PeakPosition, song.WeeksOnChart)
 		}
-	}
-
-	fmt.Println("\n=== Trending Videos (Right Now) ===")
-	trendingVideos, err := videoCollector.CollectTrendingVideos()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, video := range trendingVideos {
-		fmt.Printf("Rank: %d | Title: %s | Artist: %s | URL: %s\n",
-			video.Rank, video.Title, video.Artist, video.VideoURL)
 	}
 }

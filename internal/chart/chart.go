@@ -26,7 +26,7 @@ type TimeRange string
 const (
 	RightNow TimeRange = "RightNow"
 	Daily    TimeRange = "daily"
-	Weekly   TimeRange = "Weekly"
+	Weekly   TimeRange = "weekly"
 )
 
 type ChartConfig struct {
