@@ -2,7 +2,6 @@ package chart
 
 import "time"
 
-// ChartType represents different types of YouTube charts
 type ChartType string
 
 const (

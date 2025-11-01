@@ -4,9 +4,6 @@ import (
 	"channel-collector/internal/chart"
 	"context"
 	"fmt"
-	"log"
-	"sync"
-	"time"
 
 	"github.com/chromedp/chromedp"
 )
@@ -89,13 +86,6 @@ const (
 						const artistEl = row.querySelector('span.artistName.clickable');
 						const artist = artistEl ? artistEl.textContent.trim() : '';
 
-						// Release Date 추출 (첫 번째 metric)
-						const metricEls = row.querySelectorAll('div.metric.content.center');
-						let releaseDate = '';
-						if (metricEls.length > 0) {
-							releaseDate = metricEls[0].textContent.trim();
-						}
-
 						// Rank Trend 추출
 						const rankTrendEl = row.querySelector('#rank-trend');
 						let rankChange = 0;
@@ -137,8 +127,7 @@ const (
 							channelName: artist,
 							channelId: artistId,
 							rankChange: rankChange,
-							isNew: isNew,
-							publishedAt: releaseDate
+							isNew: isNew
 						});
 					} catch (e) {
 						console.error('Error parsing row:', e);
@@ -171,57 +160,17 @@ func NewChartCollector() *ChartCollector {
 	}
 }
 
-func (c *ChartCollector) Collect(
-	configs []*chart.ChartConfig,
-	resultCh chan<- *chart.Chart,
-	errCh chan<- error,
-	wg *sync.WaitGroup,
-) {
-	defer close(resultCh)
-	defer close(errCh)
-	defer wg.Done()
-
+func (c *ChartCollector) CollectTrendingVideos() ([]chart.TrendingVideo, error) {
 	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), c.chromedpOptions...)
 	defer allocCancel()
 
 	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(func(string, ...interface{}) {}))
 	defer cancel()
 
-	for _, config := range configs {
-		chartURL := config.GenChartURL()
-		log.Printf("Starting to collect chart: %s\n", chartURL)
-
-		chartData, err := c.collectTrendingChart(ctx, config)
-		if err != nil {
-			errCh <- fmt.Errorf("failed to collect chart %s: %w", chartURL, err)
-			continue
-		}
-
-		if chartData != nil {
-			resultCh <- chartData
-			log.Printf("Successfully collected chart: %s with %d videos\n", chartURL, len(chartData.Videos))
-		} else {
-			errCh <- fmt.Errorf("no data found for chart: %s", chartURL)
-		}
-	}
-}
-
-func (c *ChartCollector) collectTrendingChart(ctx context.Context, config *chart.ChartConfig) (*chart.Chart, error) {
+	config := &chart.ChartConfig{Type: chart.TrendingVideos, Region: chart.RegionKR, TimeRange: chart.RightNow}
 	chartURL := config.GenChartURL()
 
-	var videos []struct {
-		Rank         int    `json:"rank"`
-		VideoID      string `json:"videoId"`
-		Title        string `json:"title"`
-		Artist       string `json:"artist"`
-		ViewCount    int64  `json:"viewCount"`
-		ThumbnailURL string `json:"thumbnailUrl"`
-		ChannelName  string `json:"channelName"`
-		ChannelID    string `json:"channelId"`
-		RankChange   int    `json:"rankChange"`
-		IsNew        bool   `json:"isNew"`
-		PublishedAt  string `json:"publishedAt"`
-	}
+	var videos []chart.TrendingVideo
 
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(chartURL),
@@ -237,27 +186,5 @@ func (c *ChartCollector) collectTrendingChart(ctx context.Context, config *chart
 		return nil, fmt.Errorf("no data extracted - \n")
 	}
 
-	chartVideos := make([]chart.TrendingVideo, 0, len(videos))
-	for _, v := range videos {
-		chartVideos = append(chartVideos, chart.TrendingVideo{
-			Rank:         v.Rank,
-			VideoID:      v.VideoID,
-			Title:        v.Title,
-			Artist:       v.Artist,
-			ViewCount:    v.ViewCount,
-			ThumbnailURL: v.ThumbnailURL,
-			ChannelName:  v.ChannelName,
-			ChannelID:    v.ChannelID,
-			RankChange:   v.RankChange,
-			IsNew:        v.IsNew,
-		})
-	}
-
-	return &chart.Chart{
-		Type:        config.Type,
-		Region:      config.Region,
-		TimeRange:   config.TimeRange,
-		CollectedAt: time.Now(),
-		Videos:      chartVideos,
-	}, nil
+	return videos, nil
 }
