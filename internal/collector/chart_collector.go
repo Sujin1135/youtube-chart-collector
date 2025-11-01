@@ -155,12 +155,19 @@ const (
 )
 
 type ChartCollector struct {
-	rateLimiter <-chan time.Time
+	chromedpOptions []chromedp.ExecAllocatorOption
 }
 
 func NewChartCollector() *ChartCollector {
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", true),
+		chromedp.Flag("disable-gpu", true),
+		chromedp.Flag("no-sandbox", true),
+		chromedp.Flag("disable-dev-shm-usage", true),
+	)
+
 	return &ChartCollector{
-		rateLimiter: time.Tick(2 * time.Second), // Slower rate for chart pages
+		chromedpOptions: opts,
 	}
 }
 
@@ -174,22 +181,13 @@ func (c *ChartCollector) Collect(
 	defer close(errCh)
 	defer wg.Done()
 
-	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag("headless", true),
-		chromedp.Flag("disable-gpu", true),
-		chromedp.Flag("no-sandbox", true),
-		chromedp.Flag("disable-dev-shm-usage", true),
-	)
-
-	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), c.chromedpOptions...)
 	defer allocCancel()
 
 	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(func(string, ...interface{}) {}))
 	defer cancel()
 
 	for _, config := range configs {
-		<-c.rateLimiter
-
 		chartURL := config.GenChartURL()
 		log.Printf("Starting to collect chart: %s\n", chartURL)
 
@@ -239,9 +237,9 @@ func (c *ChartCollector) collectTrendingChart(ctx context.Context, config *chart
 		return nil, fmt.Errorf("no data extracted - \n")
 	}
 
-	chartVideos := make([]chart.Video, 0, len(videos))
+	chartVideos := make([]chart.TrendingVideo, 0, len(videos))
 	for _, v := range videos {
-		chartVideos = append(chartVideos, chart.Video{
+		chartVideos = append(chartVideos, chart.TrendingVideo{
 			Rank:         v.Rank,
 			VideoID:      v.VideoID,
 			Title:        v.Title,

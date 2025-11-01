@@ -30,35 +30,18 @@ const (
 	Weekly   TimeRange = "Weekly"
 )
 
-// ChartConfig defines the configuration for fetching a specific chart
 type ChartConfig struct {
 	Type      ChartType
 	Region    Region
 	TimeRange TimeRange
 }
 
-// Video represents a single video entry in the chart
-type Video struct {
-	Rank          int       `json:"rank"`
-	VideoID       string    `json:"videoId"`
-	Title         string    `json:"title"`
-	Artist        string    `json:"artist"`
-	ViewCount     int64     `json:"viewCount"`
-	ThumbnailURL  string    `json:"thumbnailUrl"`
-	ChannelName   string    `json:"channelName"`
-	ChannelID     string    `json:"channelId"`
-	RankChange    int       `json:"rankChange"` // Positive for up, negative for down
-	IsNew         bool      `json:"isNew"`
-	PublishedAt   time.Time `json:"publishedAt"`
-}
-
-// Chart represents a complete chart with its metadata and entries
 type Chart struct {
-	Type        ChartType   `json:"type"`
-	Region      Region      `json:"region"`
-	TimeRange   TimeRange   `json:"timeRange"`
-	CollectedAt time.Time   `json:"collectedAt"`
-	Videos      []Video     `json:"videos"`
+	Type        ChartType       `json:"type"`
+	Region      Region          `json:"region"`
+	TimeRange   TimeRange       `json:"timeRange"`
+	CollectedAt time.Time       `json:"collectedAt"`
+	Videos      []TrendingVideo `json:"videos"`
 }
 
 // GenChartURL generates the URL for a specific chart configuration
