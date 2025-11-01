@@ -22,8 +22,8 @@ func runChartCollection() {
 		log.Printf("Error collecting top videos: %v", err)
 	} else {
 		for _, video := range topVideos {
-			fmt.Printf("Rank: %d | Title: %s | Artist: %s | Peak: %d | Weeks: %d\n",
-				video.Rank, video.Title, video.Artist, video.PeakPosition, video.WeeksOnChart)
+			fmt.Printf("Rank: %d | Title: %s | Artist: %s | URL: %s | Peak: %d | Weeks: %d\n",
+				video.Rank, video.Title, video.Artist, video.VideoURL, video.PeakPosition, video.WeeksOnChart)
 		}
 	}
 
@@ -34,6 +34,7 @@ func runChartCollection() {
 	}
 
 	for _, video := range trendingVideos {
-		fmt.Println(video)
+		fmt.Printf("Rank: %d | Title: %s | Artist: %s | URL: %s\n",
+			video.Rank, video.Title, video.Artist, video.VideoURL)
 	}
 }

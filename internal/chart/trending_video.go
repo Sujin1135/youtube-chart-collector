@@ -3,6 +3,7 @@ package chart
 type TrendingVideo struct {
 	Rank         int    `json:"rank"`
 	VideoID      string `json:"videoId"`
+	VideoURL     string `json:"videoUrl"`
 	Title        string `json:"title"`
 	Artist       string `json:"artist"`
 	ViewCount    int64  `json:"viewCount"`
@@ -83,9 +84,29 @@ func GetTrendingExtractScript() string {
 							}
 						}
 
-						// Title 추출
+						// Title 및 Video URL 추출
 						const titleEl = row.querySelector('div.title#entity-title');
 						const title = titleEl ? titleEl.textContent.trim() : '';
+
+						// Video URL 추출 (#entity-title의 endpoint 속성에서)
+						let videoUrl = '';
+						if (titleEl) {
+							const endpoint = titleEl.getAttribute('endpoint');
+							if (endpoint) {
+								try {
+									const endpointObj = JSON.parse(endpoint);
+									videoUrl = endpointObj?.urlEndpoint?.url || '';
+
+									// videoUrl에서 video ID도 추출 (thumbnail에서 추출 못했을 경우 대비)
+									if (!videoId && videoUrl) {
+										const urlMatch = videoUrl.match(/[?&]v=([^&]+)/);
+										if (urlMatch) {
+											videoId = urlMatch[1];
+										}
+									}
+								} catch (e) {}
+							}
+						}
 
 						// Artist 추출
 						const artistEl = row.querySelector('span.artistName.clickable');
@@ -125,6 +146,7 @@ func GetTrendingExtractScript() string {
 						videos.push({
 							rank: rank,
 							videoId: videoId,
+							videoUrl: videoUrl,
 							title: title,
 							artist: artist,
 							viewCount: 0,
