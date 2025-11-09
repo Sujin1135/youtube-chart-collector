@@ -58,14 +58,14 @@ func (c *ChartCollector) CollectTrendingVideos() ([]chart.TrendingVideo, error) 
 	return videos, nil
 }
 
-func (c *ChartCollector) CollectTopVideos() ([]chart.TopVideo, error) {
+func (c *ChartCollector) CollectTopVideos(timeRange chart.TimeRange) ([]chart.TopVideo, error) {
 	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), c.chromedpOptions...)
 	defer allocCancel()
 
 	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(func(string, ...interface{}) {}))
 	defer cancel()
 
-	config := &chart.ChartConfig{Type: chart.TopVideos, Region: chart.RegionKR, TimeRange: chart.Daily}
+	config := &chart.ChartConfig{Type: chart.TopVideos, Region: chart.RegionKR, TimeRange: timeRange}
 	chartURL := config.GenChartURL()
 
 	var videos []chart.TopVideo
